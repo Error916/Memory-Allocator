@@ -1,4 +1,4 @@
-CFLAGS= -g -Wall -Wextra -std=c11 -pedantic -O0
+CFLAGS= -ggdb -Wall -Wextra -std=c11 -pedantic -O3
 LIBS= -lpthread
 SRC= src/main.c src/memall.c
 ifeq ($(PREFIX),)
