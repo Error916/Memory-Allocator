@@ -1,7 +1,8 @@
 #define _DEFAULT_SOURCE
 #include "memall.h"
 
-char heap[HEAP_CAPACITY] = {0};
+static_assert(HEAP_CAPACITY % sizeof(uintptr_t) == 0, "The heap capacity is divisible by the sizeo of the pointer of the platform");
+uintptr_t heap[HEAP_CAPACITY] = {0};
 
 Chunk_List alloced_chunks = {0};
 Chunk_List freed_chunks = {
@@ -12,21 +13,23 @@ Chunk_List freed_chunks = {
 };
 Chunk_List tmp_chunks = {0};
 
-void *heap_alloc(size_t size){
-	if(size > 0){
+void *heap_alloc(size_t size_bytes){
+	const size_t size_words = (size_bytes + sizeof(uintptr_t) - 1)/ sizeof(uintptr_t);
+
+	if(size_words > 0){
 		chunk_list_merge(&tmp_chunks, &freed_chunks);
 		freed_chunks = tmp_chunks;
 
 		for(size_t i = 0; i < freed_chunks.count; ++i){
 			const Chunk chunk = freed_chunks.chunks[i];
-			if(chunk.size >= size){
+			if(chunk.size >= size_words){
 				chunk_list_remove(&freed_chunks, i);
 
-				const size_t tail_size = chunk.size - size;
-				chunk_list_insert(&alloced_chunks, chunk.start, size);
+				const size_t tail_size = chunk.size - size_words;
+				chunk_list_insert(&alloced_chunks, chunk.start, size_words);
 
 				if(tail_size > 0){
-					chunk_list_insert(&freed_chunks, chunk.start + size, tail_size);
+					chunk_list_insert(&freed_chunks, chunk.start + size_words, tail_size);
 				}
 
 				return chunk.start;
@@ -51,7 +54,7 @@ void heap_collect(){
 }
 
 // return pos in array or -1 if none
-int chunk_list_find(const Chunk_List *list, void *ptr){
+int chunk_list_find(const Chunk_List *list, uintptr_t *ptr){
 	for(size_t i = 0; i < list->count; ++i){
 		if(list->chunks[i].start == ptr){
 			return (int) i;
@@ -106,6 +109,6 @@ void chunk_list_merge(Chunk_List *dst, const Chunk_List *src){
 void chunk_list_dump(const Chunk_List *list){
 	printf("Allocated Chunks (%zu):\n", list->count);
 	for(size_t i = 0; i < list->count; ++i){
-		printf("\tstart: %p, size: %zu\n", list->chunks[i].start, list->chunks[i].size);
+		printf("\tstart: %p, size: %zu\n", (void *) list->chunks[i].start, list->chunks[i].size);
 	}
 }

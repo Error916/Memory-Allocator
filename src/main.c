@@ -10,12 +10,17 @@ int main(int argc, char **argv){
 	(void) argc;
 	(void) argv;
 
+	void *p[10];
+
 	for(size_t i = 0; i < 10; ++i){
-		void *p = heap_alloc(i);
-		if(i % 2 == 0){
-			heap_free(p);
-		}
+		p[i] = heap_alloc(i);
 	}
+
+	for(size_t i = 0; i < 10; ++i){
+		heap_free(p[i]);
+	}
+
+	heap_alloc(10);
 
 	chunk_list_dump(&alloced_chunks);
 	chunk_list_dump(&freed_chunks);
