@@ -28,6 +28,9 @@ typedef struct {
 	Chunk chunks[CHUNK_LIST_CAP];
 } Chunk_List;
 
+extern Chunk_List alloced_chunks;
+extern Chunk_List freed_chunks;
+
 void *heap_alloc(size_t size);
 void heap_free(void *ptr);
 void heap_collect(void);

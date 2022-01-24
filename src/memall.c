@@ -2,7 +2,7 @@
 #include "memall.h"
 
 static_assert(HEAP_CAPACITY % sizeof(uintptr_t) == 0, "The heap capacity is divisible by the sizeo of the pointer of the platform");
-uintptr_t heap[HEAP_CAPACITY] = {0};
+static uintptr_t heap[HEAP_CAPACITY] = {0};
 
 Chunk_List alloced_chunks = {0};
 Chunk_List freed_chunks = {
