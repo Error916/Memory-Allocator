@@ -1,8 +1,13 @@
 #define _DEFAULT_SOURCE
 #include "memall.h"
 
-static_assert(HEAP_CAPACITY % sizeof(uintptr_t) == 0, "The heap capacity is divisible by the sizeo of the pointer of the platform");
-static uintptr_t heap[HEAP_CAPACITY] = {0};
+static_assert(HEAP_CAP_BYTES % sizeof(uintptr_t) == 0, "The heap capacity is divisible by the sizeo of the pointer of the platform");
+uintptr_t heap[HEAP_CAP_WORDS] = {0};
+const uintptr_t *stack_base = 0;
+
+bool reachable_chunks[CHUNK_LIST_CAP] = {0};
+void *to_free[CHUNK_LIST_CAP] = {0};
+size_t to_free_count = 0;
 
 Chunk_List alloced_chunks = {0};
 Chunk_List freed_chunks = {
@@ -49,8 +54,37 @@ void heap_free(void *ptr){
 	}
 }
 
+static void mark_region(const uintptr_t *start, const uintptr_t *end){
+	for (; start < end; start += 1){
+		const uintptr_t *p = (const uintptr_t *) *start;
+		for(size_t i = 0; i < alloced_chunks.count; ++i){
+			Chunk chunk = alloced_chunks.chunks[i];
+			if(chunk.start <= p && p < chunk.start + chunk.size){
+				if(!reachable_chunks[i]){
+					reachable_chunks[i] = true;
+					mark_region(chunk.start, chunk.start + chunk.size);
+				}
+			}
+		}
+	}
+}
+
 void heap_collect(){
-	UNIMPLEMENTED;
+	const uintptr_t *stack_start = (const uintptr_t *) __builtin_frame_address(0);
+	memset(reachable_chunks, 0, sizeof(reachable_chunks));
+	mark_region(stack_start, stack_base + 1);
+
+	to_free_count = 0;
+	for(size_t i = 0; i < alloced_chunks.count; ++i){
+		if(!reachable_chunks[i]){
+			assert(to_free_count < CHUNK_LIST_CAP);
+			to_free[to_free_count++] = alloced_chunks.chunks[i].start;
+		}
+	}
+
+	for(size_t i = 0; i < to_free_count; ++i){
+		heap_free(to_free[i]);
+	}
 }
 
 // return pos in array or -1 if none

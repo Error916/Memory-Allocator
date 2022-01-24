@@ -1,5 +1,6 @@
-CFLAGS= -ggdb -Wall -Wextra -std=c11 -pedantic -O3
-LIBS= -lpthread
+CFLAGS= -ggdb -Wall -Wextra -std=c11 -pedantic
+
+LIBS=
 SRC= src/main.c src/memall.c
 ifeq ($(PREFIX),)
     PREFIX := /usr/local

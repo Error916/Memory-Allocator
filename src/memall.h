@@ -7,8 +7,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 
-#define HEAP_CAPACITY 640000
+#define HEAP_CAP_BYTES 640000
+#define HEAP_CAP_WORDS (HEAP_CAP_BYTES / sizeof(uintptr_t))
 #define CHUNK_LIST_CAP 1024
 
 #define UNIMPLEMENTED \
@@ -30,6 +32,8 @@ typedef struct {
 
 extern Chunk_List alloced_chunks;
 extern Chunk_List freed_chunks;
+extern uintptr_t heap[HEAP_CAP_WORDS];
+extern const uintptr_t *stack_base;
 
 void *heap_alloc(size_t size);
 void heap_free(void *ptr);

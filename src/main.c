@@ -47,10 +47,23 @@ int main(int argc, char **argv){
 	(void) argc;
 	(void) argv;
 
-	Node *root = generate_tree(0, 5);
+	stack_base = (const uintptr_t *) __builtin_frame_address(0);
+
+	Node *root = generate_tree(0, 3);
 
 	print_tree(root, 0);
-	printf("\n");
+	printf("\n\n");
+
+	printf("-----------------------\n");
+	heap_collect();
+	chunk_list_dump(&alloced_chunks);
+	chunk_list_dump(&freed_chunks);
+
+	printf("-----------------------\n");
+	root = NULL;
+	heap_collect();
+	chunk_list_dump(&alloced_chunks);
+	chunk_list_dump(&freed_chunks);
 
 	return 0;
 }
